@@ -1,0 +1,52 @@
+name: ai_caption_generator_app
+description: "AI Caption Generator - Generate Instagram captions using Gemini AI"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # AI
+  http: ^1.2.0
+
+  # Firebase
+  firebase_core: ^3.6.0
+  firebase_analytics: ^11.3.3
+  cloud_firestore: ^5.4.4
+
+  # Ads
+  google_mobile_ads: ^5.1.0
+
+  # State management
+  provider: ^6.1.2
+
+  # Storage
+  shared_preferences: ^2.3.2
+
+  # Sharing & clipboard
+  share_plus: ^10.0.2
+
+  # UI
+  google_fonts: ^6.2.1
+
+  # Utils
+  intl: ^0.19.0
+
+  webview_flutter_wkwebview: 3.16.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

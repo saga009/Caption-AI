@@ -35,7 +35,8 @@ class AppStrings {
   static const String appOpenAdUnitIos = 'ca-app-pub-3940256099942544/5575463023';
 
   // Groq (free AI API — get key at console.groq.com)
-  static const String groqApiKey = 'YOUR_GROQ_API_KEY'; // Replace with your key from console.groq.com
+
+  static const String groqApiKey = "YOUR_GROQ_API_KEY";
   static const String groqModel = 'llama-3.3-70b-versatile';
 
   static const int freeGenerationsPerDay = 20;

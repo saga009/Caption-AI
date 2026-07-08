@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "623018361867",
+    "project_id": "ai-caption-generator-app",
+    "storage_bucket": "ai-caption-generator-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623018361867:android:8226b4c0febb65a742330e",
+        "android_client_info": {
+          "package_name": "com.example.ai_caption_generator_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJW218OuNGTViRqlVfAEEqGJxRW6Sl7to"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

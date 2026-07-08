@@ -59,7 +59,13 @@
       "Bash(flutter --version)",
       "Bash(pip3 install *)",
       "Bash($SCRATCH/venv/bin/python *)",
-      "Bash(dart run *)"
+      "Bash(dart run *)",
+      "Bash(flutterfire configure *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(git commit *)",
+      "Bash(flutter install *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(echo \"exit:$?\")"
     ]
   }
 }

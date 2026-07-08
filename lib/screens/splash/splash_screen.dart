@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/generation_limit_provider.dart';
+import '../../core/providers/history_provider.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -35,7 +36,10 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _init() async {
-    await context.read<GenerationLimitProvider>().loadCounts();
+    await Future.wait([
+      context.read<GenerationLimitProvider>().loadCounts(),
+      context.read<HistoryProvider>().load(),
+    ]);
     await Future.delayed(const Duration(milliseconds: 2200));
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/home');

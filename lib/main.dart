@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'app.dart';
 import 'core/providers/caption_provider.dart';
 import 'core/providers/generation_limit_provider.dart';
+import 'core/providers/history_provider.dart';
 import 'core/services/admob_service.dart';
 import 'firebase_options.dart';
 
@@ -39,6 +40,7 @@ void main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => CaptionProvider()),
           ChangeNotifierProvider(create: (_) => GenerationLimitProvider()),
+          ChangeNotifierProvider(create: (_) => HistoryProvider()),
         ],
         child: const CaptionAIApp(),
       ),

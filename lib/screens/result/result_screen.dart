@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/models/caption_model.dart';
 import '../../core/providers/caption_provider.dart';
+import '../../core/providers/history_provider.dart';
 import '../../core/services/admob_service.dart';
 
 class ResultScreen extends StatefulWidget {
@@ -20,11 +21,23 @@ class _ResultScreenState extends State<ResultScreen> {
   BannerAd? _bannerAd;
   bool _bannerLoaded = false;
   int _activeTab = 0;
+  String? _currentEntryId;
+  bool _entryIdRead = false;
 
   @override
   void initState() {
     super.initState();
     _loadBannerAd();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_entryIdRead) {
+      _entryIdRead = true;
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is String) _currentEntryId = args;
+    }
   }
 
   void _loadBannerAd() {
@@ -76,35 +89,85 @@ Generated with ${AppStrings.appName} ✨
     Share.share(text.trim());
   }
 
+  void _toggleFavorite() {
+    final id = _currentEntryId;
+    if (id == null) return;
+    context.read<HistoryProvider>().toggleFavorite(id);
+  }
+
   Future<void> _generateAgain() async {
     final captionProvider = context.read<CaptionProvider>();
     final genCount = captionProvider.generateCount;
 
-    if (genCount > 0 && genCount % 3 == 0) {
-      AdmobService.showInterstitialAd(onDismissed: () async {
-        await captionProvider.generateCaption();
-        if (mounted) setState(() {});
-      });
-    } else {
+    Future<void> doRegenerate() async {
       await captionProvider.generateCaption();
-      if (mounted) setState(() {});
+      if (!mounted) return;
+      final caption = captionProvider.caption;
+      final category = captionProvider.selectedCategory;
+      if (captionProvider.state == CaptionState.success && caption != null && category != null) {
+        final entry = await context.read<HistoryProvider>().addEntry(
+              category: category,
+              description: captionProvider.description,
+              caption: caption,
+            );
+        if (mounted) setState(() => _currentEntryId = entry.id);
+      }
     }
+
+    if (genCount > 0 && genCount % 3 == 0) {
+      AdmobService.showInterstitialAd(onDismissed: doRegenerate);
+    } else {
+      await doRegenerate();
+    }
+  }
+
+  void _showMoreActions(CaptionModel caption) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.tune, color: AppColors.primaryLight),
+              title: const Text('Change Style'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.tag, color: AppColors.primaryLight),
+              title: const Text('Copy Hashtags'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _copyToClipboard(caption.hashtagsString, 'Hashtags');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<CaptionProvider>(
       builder: (context, captionProvider, _) {
-        if (captionProvider.state == CaptionState.loading) {
-          return _buildLoadingScreen();
+        final caption = captionProvider.caption;
+        final isRegenerating = captionProvider.state == CaptionState.loading;
+
+        if (caption == null) {
+          if (isRegenerating) return _buildLoadingScreen();
+          return _buildErrorScreen(captionProvider.errorMessage ?? 'No caption generated');
         }
-        if (captionProvider.state == CaptionState.error) {
-          return _buildErrorScreen(captionProvider.errorMessage ?? 'Unknown error');
-        }
-        if (captionProvider.caption == null) {
-          return _buildErrorScreen('No caption generated');
-        }
-        return _buildResultScreen(captionProvider.caption!);
+        return _buildResultScreen(caption, isRegenerating);
       },
     );
   }
@@ -181,7 +244,7 @@ Generated with ${AppStrings.appName} ✨
     );
   }
 
-  Widget _buildResultScreen(CaptionModel caption) {
+  Widget _buildResultScreen(CaptionModel caption, bool isRegenerating) {
     final tabs = ['Short', 'Long', 'Emoji', 'Tags'];
 
     return Scaffold(
@@ -190,7 +253,7 @@ Generated with ${AppStrings.appName} ✨
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
+              _buildAppBar(context, caption),
               _buildTabBar(tabs),
               Expanded(
                 child: SingleChildScrollView(
@@ -201,7 +264,7 @@ Generated with ${AppStrings.appName} ✨
                       const SizedBox(height: 20),
                       _buildActionButtons(caption),
                       const SizedBox(height: 16),
-                      _buildGenerateAgainButton(),
+                      _buildGenerateAgainButton(isRegenerating),
                     ],
                   ),
                 ),
@@ -214,7 +277,7 @@ Generated with ${AppStrings.appName} ✨
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, CaptionModel caption) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -231,7 +294,25 @@ Generated with ${AppStrings.appName} ✨
             ),
           ),
           const SizedBox(width: 8),
-          Text('Your Captions ✨', style: Theme.of(context).textTheme.titleLarge),
+          Expanded(
+            child: Text('Your Captions ✨', style: Theme.of(context).textTheme.titleLarge),
+          ),
+          Consumer<HistoryProvider>(
+            builder: (context, historyProvider, _) {
+              final isFavorite = _currentEntryId != null && historyProvider.isFavorite(_currentEntryId!);
+              return IconButton(
+                onPressed: _currentEntryId == null ? null : _toggleFavorite,
+                icon: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? AppColors.secondary : AppColors.textMuted,
+                ),
+              );
+            },
+          ),
+          IconButton(
+            onPressed: () => _showMoreActions(caption),
+            icon: const Icon(Icons.more_vert, color: AppColors.textMuted),
+          ),
         ],
       ),
     );
@@ -391,13 +472,19 @@ Generated with ${AppStrings.appName} ✨
     );
   }
 
-  Widget _buildGenerateAgainButton() {
+  Widget _buildGenerateAgainButton(bool isRegenerating) {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: _generateAgain,
-        icon: const Icon(Icons.refresh, size: 18),
-        label: const Text(AppStrings.generateAgain),
+        onPressed: isRegenerating ? null : _generateAgain,
+        icon: isRegenerating
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryLight),
+              )
+            : const Icon(Icons.refresh, size: 18),
+        label: Text(isRegenerating ? 'Regenerating...' : AppStrings.generateAgain),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primaryLight,
           side: const BorderSide(color: AppColors.primary, width: 1.5),

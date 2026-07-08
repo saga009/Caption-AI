@@ -1,5 +1,3 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +5,6 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/models/category_model.dart';
 import '../../core/providers/caption_provider.dart';
-import '../../core/providers/generation_limit_provider.dart';
 import '../../core/services/admob_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -44,18 +41,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              //_buildLimitBadge(context),
-              Expanded(child: _buildCategoryGrid()),
-              if (_bannerLoaded && _bannerAd != null) _buildBannerAd(),
-            ],
-          ),
+    return Container(
+      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      child: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeroCard(context),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Choose a Category',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildCategoryGrid(),
+                  ],
+                ),
+              ),
+            ),
+            if (_bannerLoaded && _bannerAd != null) _buildBannerAd(),
+          ],
         ),
       ),
     );
@@ -75,94 +86,87 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ShaderMask(
-                shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
-                child: Text(
-                  AppStrings.appName,
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ),
-              Text(
-                AppStrings.homeTitle,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      color: AppColors.textMuted,
-                    ),
-              ),
-            ],
+          ShaderMask(
+            shaderCallback: (b) => AppColors.primaryGradient.createShader(b),
+            child: Text(
+              AppStrings.appName,
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
           ),
-
         ],
       ),
     );
   }
 
-  Widget _buildLimitBadge(BuildContext context) {
-    return Consumer<GenerationLimitProvider>(
-      builder: (_, limitProvider, __) {
-        if (!limitProvider.isLoaded) return const SizedBox.shrink();
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: limitProvider.hasReachedFreeLimit
-                ? AppColors.error.withValues(alpha: 0.15)
-                : AppColors.success.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: limitProvider.hasReachedFreeLimit
-                  ? AppColors.error.withValues(alpha: 0.3)
-                  : AppColors.success.withValues(alpha: 0.3),
+  Widget _buildHeroCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Create Viral Captions with AI',
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  AppStrings.tagline,
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                ),
+              ],
             ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                limitProvider.hasReachedFreeLimit
-                    ? Icons.lock_outline
-                    : Icons.bolt,
-                size: 18,
-                color: limitProvider.hasReachedFreeLimit
-                    ? AppColors.error
-                    : AppColors.success,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                limitProvider.statusText,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      color: limitProvider.hasReachedFreeLimit
-                          ? AppColors.error
-                          : AppColors.success,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-            ],
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.auto_fix_high, color: Colors.white, size: 30),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
   Widget _buildCategoryGrid() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.4,
-        ),
-        itemCount: AppCategories.all.length,
-        itemBuilder: (context, index) {
-          return _CategoryCard(category: AppCategories.all[index]);
-        },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.4,
       ),
+      itemCount: AppCategories.all.length,
+      itemBuilder: (context, index) {
+        return _CategoryCard(category: AppCategories.all[index]);
+      },
     );
   }
 

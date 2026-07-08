@@ -5,6 +5,10 @@ import '../services/gemini_service.dart';
 
 enum CaptionState { idle, loading, success, error }
 
+const List<String> kToneOptions = ['Confident', 'Casual', 'Funny', 'Professional', 'Poetic'];
+const List<String> kLengthOptions = ['Short', 'Medium', 'Long'];
+const List<String> kEmojiLevelOptions = ['None', 'Low', 'Medium', 'High'];
+
 class CaptionProvider extends ChangeNotifier {
   CaptionState _state = CaptionState.idle;
   CaptionModel? _caption;
@@ -12,6 +16,9 @@ class CaptionProvider extends ChangeNotifier {
   CategoryModel? _selectedCategory;
   String _description = '';
   int _generateCount = 0;
+  String _tone = kToneOptions.first;
+  String _length = kLengthOptions[1];
+  String _emojiLevel = kEmojiLevelOptions[2];
 
   CaptionState get state => _state;
   CaptionModel? get caption => _caption;
@@ -19,6 +26,9 @@ class CaptionProvider extends ChangeNotifier {
   CategoryModel? get selectedCategory => _selectedCategory;
   String get description => _description;
   int get generateCount => _generateCount;
+  String get tone => _tone;
+  String get length => _length;
+  String get emojiLevel => _emojiLevel;
 
   void selectCategory(CategoryModel category) {
     _selectedCategory = category;
@@ -27,6 +37,21 @@ class CaptionProvider extends ChangeNotifier {
 
   void setDescription(String value) {
     _description = value;
+    notifyListeners();
+  }
+
+  void setTone(String value) {
+    _tone = value;
+    notifyListeners();
+  }
+
+  void setLength(String value) {
+    _length = value;
+    notifyListeners();
+  }
+
+  void setEmojiLevel(String value) {
+    _emojiLevel = value;
     notifyListeners();
   }
 
@@ -41,6 +66,9 @@ class CaptionProvider extends ChangeNotifier {
       _caption = await GeminiService.generateCaption(
         category: _selectedCategory!.promptHint,
         description: _description.trim(),
+        tone: _tone,
+        length: _length,
+        emojiLevel: _emojiLevel,
       );
       _state = CaptionState.success;
       _generateCount++;

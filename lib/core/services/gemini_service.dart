@@ -10,8 +10,17 @@ class GeminiService {
   static Future<CaptionModel> generateCaption({
     required String category,
     required String description,
+    String tone = 'Confident',
+    String length = 'Medium',
+    String emojiLevel = 'Medium',
   }) async {
-    final prompt = _buildPrompt(category: category, description: description);
+    final prompt = _buildPrompt(
+      category: category,
+      description: description,
+      tone: tone,
+      length: length,
+      emojiLevel: emojiLevel,
+    );
 
     final response = await http.post(
       Uri.parse(_apiUrl),
@@ -46,26 +55,35 @@ class GeminiService {
   static String _buildPrompt({
     required String category,
     required String description,
+    required String tone,
+    required String length,
+    required String emojiLevel,
   }) {
     return '''
 You are an expert Instagram caption writer. Generate viral, engaging captions for a $category photo/post.
 
 Photo description: $description
 
+Style preferences:
+- Tone: $tone
+- Caption length preference: $length
+- Emoji usage: $emojiLevel
+
 Generate the following in JSON format ONLY (no markdown, no code block, just raw JSON):
 {
-  "short": "1 short punchy Instagram caption with 1-2 relevant emojis (max 15 words)",
-  "long": "1 long emotional Instagram caption with emojis (3-5 sentences)",
-  "emoji": "5-8 relevant emojis that represent this photo perfectly",
+  "short": "1 short punchy Instagram caption with emojis matching the requested emoji usage (max 15 words)",
+  "long": "1 long caption with emojis matching the requested emoji usage, following the requested length preference",
+  "emoji": "5-8 relevant emojis as a single string (not an array), e.g. ✨📸❤️",
   "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5", "hashtag6", "hashtag7", "hashtag8", "hashtag9", "hashtag10"]
 }
 
 Rules:
 - Make captions trendy and viral
 - hashtags array should have exactly 10 items, no # symbol, all lowercase
-- Match the tone to the $category category
+- Match the tone to the $category category and the requested "$tone" tone
 - short caption should be punchy and catchy
-- long caption should be emotional and engaging
+- long caption should follow the "$length" length preference and be engaging
+- if emoji usage is "None", do not include any emojis in short/long captions
 ''';
   }
 
@@ -77,7 +95,7 @@ Rules:
       if (jsonStart == -1 || jsonEnd == -1) {
         throw const FormatException('No JSON found in response');
       }
-      final jsonStr = cleanText.substring(jsonStart, jsonEnd + 1);
+      final jsonStr = _sanitizeJsonStrings(cleanText.substring(jsonStart, jsonEnd + 1));
       final json = jsonDecode(jsonStr) as Map<String, dynamic>;
       return CaptionModel.fromJson(json);
     } catch (_) {
@@ -88,5 +106,41 @@ Rules:
         hashtags: ['instagram', 'viral', 'trending', 'caption', 'ai'],
       );
     }
+  }
+
+  // Groq occasionally emits raw newlines/tabs inside JSON string values instead of
+  // escaping them, which makes jsonDecode throw. Escape control characters, but only
+  // while inside a string literal, so structural JSON whitespace is left untouched.
+  static String _sanitizeJsonStrings(String input) {
+    final buffer = StringBuffer();
+    var inString = false;
+    var escaped = false;
+    for (final rune in input.runes) {
+      final ch = String.fromCharCode(rune);
+      if (inString) {
+        if (escaped) {
+          buffer.write(ch);
+          escaped = false;
+        } else if (ch == '\\') {
+          buffer.write(ch);
+          escaped = true;
+        } else if (ch == '"') {
+          buffer.write(ch);
+          inString = false;
+        } else if (ch == '\n') {
+          buffer.write(r'\n');
+        } else if (ch == '\r') {
+          buffer.write(r'\r');
+        } else if (ch == '\t') {
+          buffer.write(r'\t');
+        } else {
+          buffer.write(ch);
+        }
+      } else {
+        if (ch == '"') inString = true;
+        buffer.write(ch);
+      }
+    }
+    return buffer.toString();
   }
 }

@@ -21,6 +21,44 @@ class AppStrings {
   static const String watchAd = 'Watch Ad for More';
   static const String copiedMsg = 'Copied to clipboard!';
   static const String generatingMsg = 'Crafting your perfect caption...';
+  static const String generatingTip =
+      'The more details you add to your description, the more unique your caption will be.';
+
+  // Style & Preferences screen
+  static const String styleTitle = 'Style & Preferences';
+  static const String toneLabel = 'Tone';
+  static const String lengthLabel = 'Caption Length';
+  static const String emojiLevelLabel = 'Emoji Level';
+  static const String generateCaptionBtn = 'Generate Caption ✨';
+
+  // Navigation
+  static const String navHome = 'Home';
+  static const String navTools = 'Tools';
+  static const String navHistory = 'History';
+  static const String navFavorites = 'Favorites';
+  static const String navSettings = 'Settings';
+
+  // Tools screen
+  static const String toolsTitle = 'All Categories';
+  static const String searchHint = 'Search a category...';
+
+  // History / Favorites
+  static const String historyTitle = 'History';
+  static const String favoritesTitle = 'Favorites';
+  static const String historyEmpty = 'No captions generated yet';
+  static const String historyEmptySub = 'Your generated captions will show up here';
+  static const String favoritesEmpty = 'No favorites yet';
+  static const String favoritesEmptySub = 'Tap the heart on a caption to save it here';
+  static const String deleteEntry = 'Delete';
+  static const String deleteEntryConfirm = 'Delete this caption from your history?';
+
+  // Settings
+  static const String settingsTitle = 'Settings';
+  static const String clearHistory = 'Clear History';
+  static const String clearHistoryConfirm =
+      'This will permanently delete all your saved captions. This cannot be undone.';
+  static const String shareApp = 'Share App';
+  static const String appVersion = 'App Version';
 
   // Set to false to disable all ads app-wide (flip before a Play Store build).
   static const bool adsEnabled = false;

@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/caption_provider.dart';
-import '../../core/providers/generation_limit_provider.dart';
-import '../../core/services/admob_service.dart';
 
 class InputScreen extends StatefulWidget {
   const InputScreen({super.key});
@@ -18,13 +16,19 @@ class _InputScreenState extends State<InputScreen> {
   final FocusNode _focusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    _textController.text = context.read<CaptionProvider>().description;
+  }
+
+  @override
   void dispose() {
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  Future<void> _onGenerate() async {
+  void _onNext() {
     final description = _textController.text.trim();
     if (description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -32,91 +36,8 @@ class _InputScreenState extends State<InputScreen> {
       );
       return;
     }
-
-    final limitProvider = context.read<GenerationLimitProvider>();
-    final captionProvider = context.read<CaptionProvider>();
-
-    final canGen = await limitProvider.tryGenerate();
-
-    if (!canGen && mounted) {
-      _showLimitDialog();
-      return;
-    }
-
-    captionProvider.setDescription(description);
-
-    final genCount = captionProvider.generateCount;
-    if (genCount > 0 && genCount % 3 == 0) {
-      AdmobService.showInterstitialAd(onDismissed: () {
-        if (mounted) _navigate(captionProvider);
-      });
-    } else {
-      await _navigate(captionProvider);
-    }
-  }
-
-  Future<void> _navigate(CaptionProvider captionProvider) async {
-    await captionProvider.generateCaption();
-    if (mounted) {
-      Navigator.pushNamed(context, '/result');
-    }
-  }
-
-  void _showLimitDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          AppStrings.dailyLimitTitle,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        content: Text(
-          AppStrings.dailyLimitMsg,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.textMuted),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _watchRewardedAd();
-            },
-            child: const Text(AppStrings.watchAd),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _watchRewardedAd() {
-    AdmobService.showRewardedAd(
-      onRewarded: (amount) async {
-        await context.read<GenerationLimitProvider>().addBonusGenerations(amount);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$amount bonus captions unlocked!'),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        }
-      },
-      onFailed: () {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ad not available. Try again later.')),
-          );
-        }
-      },
-    );
+    context.read<CaptionProvider>().setDescription(description);
+    Navigator.pushNamed(context, '/style');
   }
 
   @override
@@ -145,7 +66,7 @@ class _InputScreenState extends State<InputScreen> {
                       const SizedBox(height: 12),
                       _buildSuggestions(context),
                       const SizedBox(height: 32),
-                      _buildGenerateButton(context, captionProvider),
+                      _buildNextButton(context),
                     ],
                   ),
                 ),
@@ -275,9 +196,7 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _buildGenerateButton(BuildContext context, CaptionProvider captionProvider) {
-    final isLoading = captionProvider.state == CaptionState.loading;
-
+  Widget _buildNextButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: Container(
@@ -293,41 +212,27 @@ class _InputScreenState extends State<InputScreen> {
           ],
         ),
         child: ElevatedButton(
-          onPressed: isLoading ? null : _onGenerate,
+          onPressed: _onNext,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             padding: const EdgeInsets.symmetric(vertical: 18),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          child: isLoading
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Next',
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      color: Colors.white,
+                      fontSize: 16,
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      AppStrings.generatingMsg,
-                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                            color: Colors.white,
-                          ),
-                    ),
-                  ],
-                )
-              : Text(
-                  AppStrings.generateBtn,
-                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+            ],
+          ),
         ),
       ),
     );

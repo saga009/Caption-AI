@@ -15,9 +15,16 @@ class CaptionModel {
     return CaptionModel(
       shortCaption: json['short'] as String? ?? '',
       longCaption: json['long'] as String? ?? '',
-      emojiCaption: json['emoji'] as String? ?? '',
+      emojiCaption: _asString(json['emoji']),
       hashtags: List<String>.from(json['hashtags'] as List? ?? []),
     );
+  }
+
+  // Groq sometimes returns the emoji field as a JSON array instead of a single string.
+  static String _asString(dynamic value) {
+    if (value is String) return value;
+    if (value is List) return value.join(' ');
+    return '';
   }
 
   Map<String, dynamic> toJson() => {

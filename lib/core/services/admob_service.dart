@@ -9,7 +9,11 @@ class AdmobService {
   static bool _isInterstitialLoading = false;
   static bool _isRewardedLoading = false;
 
+  static bool get adsEnabled => AppStrings.adsEnabled;
+
   static Future<void> initialize() async {
+    if (!adsEnabled) return;
+
     await MobileAds.instance.initialize();
     _loadInterstitialAd();
     _loadRewardedAd();
@@ -27,7 +31,8 @@ class AdmobService {
       ? AppStrings.rewardedAdUnitAndroid
       : AppStrings.rewardedAdUnitIos;
 
-  static BannerAd createBannerAd() {
+  static BannerAd? createBannerAd() {
+    if (!adsEnabled) return null;
     return BannerAd(
       adUnitId: bannerAdUnitId,
       size: AdSize.banner,
@@ -37,7 +42,7 @@ class AdmobService {
   }
 
   static void _loadInterstitialAd() {
-    if (_isInterstitialLoading) return;
+    if (!adsEnabled || _isInterstitialLoading) return;
     _isInterstitialLoading = true;
     InterstitialAd.load(
       adUnitId: interstitialAdUnitId,
@@ -55,8 +60,8 @@ class AdmobService {
   }
 
   static void showInterstitialAd({VoidCallback? onDismissed}) {
-    if (_interstitialAd == null) {
-      _loadInterstitialAd();
+    if (!adsEnabled || _interstitialAd == null) {
+      if (adsEnabled) _loadInterstitialAd();
       onDismissed?.call();
       return;
     }
@@ -78,7 +83,7 @@ class AdmobService {
   }
 
   static void _loadRewardedAd() {
-    if (_isRewardedLoading) return;
+    if (!adsEnabled || _isRewardedLoading) return;
     _isRewardedLoading = true;
     RewardedAd.load(
       adUnitId: rewardedAdUnitId,
@@ -99,8 +104,8 @@ class AdmobService {
     required Function(int amount) onRewarded,
     VoidCallback? onFailed,
   }) {
-    if (_rewardedAd == null) {
-      _loadRewardedAd();
+    if (!adsEnabled || _rewardedAd == null) {
+      if (adsEnabled) _loadRewardedAd();
       onFailed?.call();
       return;
     }
@@ -124,5 +129,5 @@ class AdmobService {
     );
   }
 
-  static bool get isRewardedAdReady => _rewardedAd != null;
+  static bool get isRewardedAdReady => adsEnabled && _rewardedAd != null;
 }

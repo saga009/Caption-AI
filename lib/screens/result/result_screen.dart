@@ -28,7 +28,9 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _loadBannerAd() {
-    _bannerAd = AdmobService.createBannerAd()
+    final ad = AdmobService.createBannerAd();
+    if (ad == null) return;
+    _bannerAd = ad
       ..load().then((_) {
         if (mounted) setState(() => _bannerLoaded = true);
       });

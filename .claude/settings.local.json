@@ -41,7 +41,25 @@
       "Bash(adb -s emulator-5554 shell screencap -p /sdcard/screenshot.png)",
       "Bash(adb -s emulator-5554 pull /sdcard/screenshot.png /private/tmp/claude-501/-Users-itfox-technology-StudioProjects-ai-caption-generator-app/83a97e27-4b5f-4c11-9389-47d23082ae6d/scratchpad/android_screenshot.png)",
       "Bash(adb *)",
-      "Bash(rm -rf .git)"
+      "Bash(rm -rf .git)",
+      "Bash(firebase --version)",
+      "Bash(flutterfire --version)",
+      "Bash(firebase login:list)",
+      "Bash(firebase projects:list)",
+      "Read(//Users/itfox-technology/.config/configstore/**)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(npm ls *)",
+      "Read(//Users/itfox-technology/**)",
+      "Bash(/usr/local/bin/firebase --version)",
+      "Bash(/usr/local/bin/firebase login:list)",
+      "Bash(firebase projects:create *)",
+      "Bash(dart pub *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter --version)",
+      "Bash(pip3 install *)",
+      "Bash($SCRATCH/venv/bin/python *)",
+      "Bash(dart run *)"
     ]
   }
 }

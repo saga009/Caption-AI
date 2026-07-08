@@ -22,6 +22,9 @@ class AppStrings {
   static const String copiedMsg = 'Copied to clipboard!';
   static const String generatingMsg = 'Crafting your perfect caption...';
 
+  // Set to false to disable all ads app-wide (flip before a Play Store build).
+  static const bool adsEnabled = false;
+
   // AdMob IDs (test IDs - replace with real ones before publishing)
   static const String admobAppIdAndroid = 'ca-app-pub-3940256099942544~3347511713';
   static const String admobAppIdIos = 'ca-app-pub-3940256099942544~1458002511';
@@ -35,8 +38,7 @@ class AppStrings {
   static const String appOpenAdUnitIos = 'ca-app-pub-3940256099942544/5575463023';
 
   // Groq (free AI API — get key at console.groq.com)
-
-  static const String groqApiKey = "YOUR_GROQ_API_KEY";
+  static const String groqApiKey = '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';
   static const String groqModel = 'llama-3.3-70b-versatile';
 
   static const int freeGenerationsPerDay = 20;

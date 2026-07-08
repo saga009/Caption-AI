@@ -1,3 +1,5 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadBannerAd() {
-    _bannerAd = AdmobService.createBannerAd()
+    final ad = AdmobService.createBannerAd();
+    if (ad == null) return;
+    _bannerAd = ad
       ..load().then((_) {
         if (mounted) setState(() => _bannerLoaded = true);
       });
@@ -47,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               _buildHeader(context),
-              _buildLimitBadge(context),
+              //_buildLimitBadge(context),
               Expanded(child: _buildCategoryGrid()),
               if (_bannerLoaded && _bannerAd != null) _buildBannerAd(),
             ],
@@ -92,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+
         ],
       ),
     );
